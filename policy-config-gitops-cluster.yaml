@@ -1,0 +1,211 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-config-gitops-cluster
+  namespace: policies
+  annotations:
+    policy.open-cluster-management.io/controls: Gitops-Operator
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-gitops-cluster-1
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: apps.open-cluster-management.io/v1beta1
+                kind: GitOpsCluster
+                metadata:
+                  name: argo-acm-clusters-1
+                  namespace: openshift-gitops
+                spec:
+                  argoServer:
+                    cluster: christian
+                    argoNamespace: openshift-gitops
+                  placementRef:
+                    kind: Placement
+                    apiVersion: cluster.open-cluster-management.io/v1alpha1
+                    name: placement1
+                    namespace: openshift-gitops
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-gitops-cluster-2
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: apps.open-cluster-management.io/v1beta1
+                kind: GitOpsCluster
+                metadata:
+                  name: argo-acm-clusters-2
+                  namespace: openshift-gitops
+                spec:
+                  argoServer:
+                    cluster: christian2
+                    argoNamespace: openshift-gitops
+                  placementRef:
+                    kind: Placement
+                    apiVersion: cluster.open-cluster-management.io/v1alpha1
+                    name: placement2
+                    namespace: openshift-gitops
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-gitops-cluster-prod-ns
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1alpha1
+                kind: ManagedClusterSetBinding
+                metadata:
+                  name: clusterset1
+                  namespace: openshift-gitops
+                spec:
+                  clusterSet: clusterset1
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-gitops-cluster-set-2
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1alpha1
+                kind: ManagedClusterSetBinding
+                metadata:
+                  name: clusterset2
+                  namespace: openshift-gitops
+                spec:
+                  clusterSet: clusterset2
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-gitops-placement-1
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1alpha1
+                kind: Placement
+                metadata:
+                  name: placement1
+                  namespace: openshift-gitops
+                spec:
+                  clusterSets:
+                    - clusterset1
+                  predicates:
+                    - requiredClusterSelector:
+                        labelSelector:
+                          matchExpressions:
+                            - key: environment
+                              operator: In
+                              values:
+                                - dev
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-gitops-placement-2
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1alpha1
+                kind: Placement
+                metadata:
+                  name: placement2
+                  namespace: openshift-gitops
+                spec:
+                  clusterSets:
+                    - clusterset2
+                  predicates:
+                    - requiredClusterSelector:
+                        labelSelector:
+                          matchExpressions:
+                            - key: environment
+                              operator: In
+                              values:
+                                - prod
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-config-gitops-cluster
+  namespace: policies
+placementRef:
+  name: placement-policy-config-gitops-cluster
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-config-gitops-cluster
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-config-gitops-cluster
+  namespace: policies
+spec:
+  clusterConditions:
+    - status: 'True'
+      type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - key: environment
+        operator: In
+        values:
+          - "dev"
