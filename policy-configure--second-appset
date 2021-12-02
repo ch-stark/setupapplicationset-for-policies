@@ -1,0 +1,85 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-configure-second-appset
+  namespace: policies
+  annotations:
+    policy.open-cluster-management.io/controls: Gitops-Operator
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-configure-second-appset
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: argoproj.io/v1alpha1
+                kind: ApplicationSet
+                metadata:
+                  name: myssecondappset
+                  namespace: openshift-gitops
+                spec:
+                  generators:
+                    - clusterDecisionResource:
+                        configMapRef: acm-placement
+                        labelSelector:
+                          matchLabels:
+                            cluster.open-cluster-management.io/placement: placement1
+                        requeueAfterSeconds: 180
+                  template:
+                    metadata:
+                      name: myappset-{{`{{name}}`}}     
+                    spec:
+                      destination:
+                        namespace: pacman-app
+                        server: '{{`{{server}}`}}' 
+                      project: default
+                      source:
+                        path: deploy
+                        repoURL: https://github.com/hichammourad/pacman.git
+                        targetRevision: master-no-pre-post
+                      syncPolicy:
+                        syncOptions:
+                          - CreateNamespace=true
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-configure-appset
+  namespace: policies
+placementRef:
+  name: placement-policy-configure-second-appset
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-configure-second-appset
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-configure-second-appset
+  namespace: policies
+spec:
+  clusterConditions:
+    - status: 'True'
+      type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - key: local-cluster
+        operator: In
+        values:
+          - 'true'
