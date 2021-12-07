@@ -6,7 +6,7 @@ metadata:
   annotations:
     policy.open-cluster-management.io/controls: Gitops-Operator
 spec:
-  remediationAction: enforce
+  remediationAction: inform
   disabled: false
   policy-templates:
     - objectDefinition:
