@@ -2,9 +2,8 @@ apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
   name: policy-label-clusterset
-  namespace: policies
   annotations:
-    policy.open-cluster-management.io/controls: Gitops-Operator
+    policy.open-cluster-management.io/controls: gitops-operator
 spec:
   remediationAction: enforce
   disabled: false
@@ -13,7 +12,7 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: policy-label-clusterset-prod-ns
+          name: policy-label-clusterset
         spec:
           remediationAction: inform
           severity: low
@@ -37,9 +36,9 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-label-clusterset
+  name: binding-label-clusterset
 placementRef:
-  name: placement-policy-label-clusterset
+  name: placement-label-clusterset
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
@@ -50,7 +49,7 @@ subjects:
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: placement-policy-label-clusterset
+  name: placement-label-clusterset
 spec:
   clusterConditions:
     - status: 'True'
