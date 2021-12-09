@@ -1,7 +1,7 @@
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
-  name: policy-configure-appset
+  name: policy-configure-appset-3
   namespace: policies
   annotations:
     policy.open-cluster-management.io/controls: Gitops-Operator
@@ -13,7 +13,7 @@ spec:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
-          name: policy-configure-appset
+          name: policy-configure-appset-3
         spec:
           remediationAction: inform
           severity: low
@@ -47,9 +47,9 @@ spec:
                         server: '{{`{{server}}`}}' 
                       project: default
                       source:
-                        path: deploy
-                        repoURL: https://github.com/ch-stark/application-set-deploy-policies.git
-                        targetRevision: main
+                        path: remediate
+                        repoURL: https://github.com/JAORMX/compliance-operator-gitops.git
+                        targetRevision: remediate
                       syncPolicy:
                         syncOptions:
                           - CreateNamespace=true
@@ -57,35 +57,35 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-configure-appset
+  name: binding-policy-configure-appset-3
   namespace: policies
 placementRef:
-  name: placement-policy-configure-appset
+  name: placement-policy-configure-appset-3
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
-  - name: policy-configure-appset
+  - name: policy-configure-appset-3
     kind: Policy
     apiGroup: policy.open-cluster-management.io
 ---
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-configure-appset
+  name: binding-policy-configure-appset-3
   namespace: policies
 placementRef:
-  name: placement-policy-configure-appset
+  name: placement-policy-configure-appset-3
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
-  - name: policy-configure-appset
+  - name: policy-configure-appset-3
     kind: Policy
     apiGroup: policy.open-cluster-management.io
 ---
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: placement-policy-configure-appset
+  name: placement-policy-configure-appset-3
   namespace: policies
 spec:
   clusterConditions:
