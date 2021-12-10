@@ -40,16 +40,16 @@ spec:
                         requeueAfterSeconds: 180
                   template:
                     metadata:
-                      name: myappset-{{`{{name}}`}}     
+                      name: myappset-`{{`{{name}}`}}`     
                     spec:
                       destination:
                         namespace: policies
                         server: '{{`{{server}}`}}' 
                       project: default
                       source:
-                        path: remediate
-                        repoURL: https://github.com/JAORMX/compliance-operator-gitops.git
-                        targetRevision: remediate
+                        path: deploy
+                        repoURL: https://github.com/ch-stark/application-set-deploy-policies.git
+                        targetRevision: main
                       syncPolicy:
                         syncOptions:
                           - CreateNamespace=true
