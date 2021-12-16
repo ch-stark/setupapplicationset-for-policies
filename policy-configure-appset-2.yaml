@@ -1,0 +1,99 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-configure-appset-5
+  namespace: policies
+  annotations:
+    policy.open-cluster-management.io/controls: Gitops-Operator
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: policy-configure-appset-5
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - default
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: argoproj.io/v1alpha1
+                kind: ApplicationSet
+                metadata:
+                  name: myappset2
+                  namespace: openshift-gitops
+                spec:
+                  generators:
+                    - clusterDecisionResource:
+                        configMapRef: acm-placement
+                        labelSelector:
+                          matchLabels:
+                            cluster.open-cluster-management.io/placement: placement1
+                        requeueAfterSeconds: 180
+                  template:
+                    metadata:
+                      name: myappset2-`{{`{{name}}`}}`     
+                    spec:
+                      destination:
+                        namespace: policies
+                        server: '{{`{{server}}`}}' 
+                      project: default
+                      source:
+                        path: .
+                        repoURL: https://github.com/redhat-cop/gitops-catalog
+                        targetRevision: main
+                      syncPolicy:
+                        syncOptions:
+                          - CreateNamespace=true
+--.
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-configure-appset-5
+  namespace: policies
+placementRef:
+  name: placement-policy-configure-appset-5
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-configure-appset-5
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-configure-appset-5
+  namespace: policies
+placementRef:
+  name: placement-policy-configure-appset-5
+  kind: PlacementRule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - name: policy-configure-appset-5
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placement-policy-configure-appset-5
+  namespace: policies
+spec:
+  clusterConditions:
+    - status: 'True'
+      type: ManagedClusterConditionAvailable
+  clusterSelector:
+    matchExpressions:
+      - key: environment
+        operator: In
+        values:
+          - dev
